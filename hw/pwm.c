@@ -12,12 +12,12 @@
 #define PERIOD 1000
 
 /*
- * PWMA_Init - 初始化A相驱动PWM
+ * PWMC_Init - 初始化C相驱动PWM
  *
- * PB10->TIM2CH3->INHA
- * PB11->TIM2CH4->INLA
+ * PB10->TIM2CH3->INLC
+ * PB11->TIM2CH4->INHC
  */
-void PWMA_Init(void) {
+void PWMC_Init(void) {
     // 开启时钟 端口重映射
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO,ENABLE);
     GPIO_PinRemapConfig(GPIO_PartialRemap2_TIM2,ENABLE);
@@ -49,14 +49,14 @@ void PWMA_Init(void) {
 }
 
 /*
- * PWMBC_Init - 初始化BC相驱动PWM
+ * PWMAB_Init - 初始化AB相驱动PWM
  *
- * PA8->TIM1CH1->INHB
- * PA9->TIM1CH2->INLB
- * PA10->TIM1CH3->INHC
- * PA11->TIM1CH4->INLC
+ * PA8->TIM1CH1->INLB
+ * PA9->TIM1CH2->INHB
+ * PA10->TIM1CH3->INLA
+ * PA11->TIM1CH4->INHA
  */
-void PWMBC_Init(void) {
+void PWMAB_Init(void) {
     // 开启时钟
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
@@ -97,8 +97,8 @@ void PWMBC_Init(void) {
  * PWM_Init - 初始化PWM
  */
 void PWM_Init(void) {
-    PWMA_Init();
-    PWMBC_Init();
+    PWMC_Init();
+    PWMAB_Init();
     
     TIM_Cmd(TIM1, ENABLE);
     TIM_Cmd(TIM2, ENABLE);

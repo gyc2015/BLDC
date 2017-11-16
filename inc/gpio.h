@@ -1,10 +1,10 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-#define EN_GATE     PBout(15)
-#define WAKE        PBout(12)
-#define PWRGD       PBin(14)
-#define nFAULT      PBin(13)
+#define EN_GATE     PAout(12)
+#define WAKE        PBout(2)
+#define PWRGD       PBin(0)
+#define nFAULT      PBin(1)
 
 
 void IO_Init(void);
