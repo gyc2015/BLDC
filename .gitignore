@@ -1,0 +1,9 @@
+﻿# 工程项目
+/pro
+!/pro/*.uvoptx
+!/pro/*.uvprojx
+
+/vsproc
+
+*.bak
+*.tmp
