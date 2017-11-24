@@ -8,7 +8,7 @@
 /*
  * 系统频率 72MHz PWM频率 72KHz
  */
-#define PRESCALER 1
+#define PRESCALER 2
 #define PERIOD 1000
 
 /*
@@ -74,6 +74,8 @@ void PWMAB_Init(void) {
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
+    
+    TIM_ARRPreloadConfig(TIM1, ENABLE);
     // CH1,CH2,CH3,CH4输出配置
     TIM_OCInitTypeDef TIM_OCInitStructure;
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
@@ -90,8 +92,8 @@ void PWMAB_Init(void) {
     TIM_OC3Init(TIM1, &TIM_OCInitStructure);
     TIM_OC4Init(TIM1, &TIM_OCInitStructure);
     
-    TIM_ARRPreloadConfig(TIM1, ENABLE);
 	TIM_Cmd(TIM1, DISABLE);
+    TIM_CtrlPWMOutputs(TIM1, ENABLE);
 }
 /*
  * PWM_Init - 初始化PWM
@@ -99,9 +101,9 @@ void PWMAB_Init(void) {
 void PWM_Init(void) {
     PWMC_Init();
     PWMAB_Init();
-    
-    TIM_Cmd(TIM1, ENABLE);
+
     TIM_Cmd(TIM2, ENABLE);
+    TIM_Cmd(TIM1, ENABLE);
     
     PWM_Set_Duty(&PWM_HA, 0);
     PWM_Set_Duty(&PWM_LA, 0);

@@ -22,6 +22,23 @@ void ADC1_Init(uint16 *buf) {
                     GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6;
 	gpio.GPIO_Mode = GPIO_Mode_AIN;
 	GPIO_Init(GPIOA, &gpio);
+    // DMAÅäÖÃ
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
+    DMA_DeInit(DMA1_Channel1);
+    DMA_InitTypeDef dma;
+    dma.DMA_PeripheralBaseAddr = (uint32)&ADC1->DR;
+    dma.DMA_MemoryBaseAddr = (uint32)buf;
+    dma.DMA_DIR = DMA_DIR_PeripheralSRC;
+    dma.DMA_BufferSize = 7;
+    dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    dma.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
+    dma.DMA_Mode = DMA_Mode_Circular;
+    dma.DMA_Priority = DMA_Priority_High;
+    dma.DMA_M2M = DMA_M2M_Disable;
+    DMA_Init(DMA1_Channel1, &dma);
+    DMA_Cmd(DMA1_Channel1,ENABLE);
     // ADCÅäÖÃ
     ADC_InitTypeDef adc;
 	ADC_DeInit(ADC1);
@@ -40,20 +57,7 @@ void ADC1_Init(uint16 *buf) {
     ADC_RegularChannelConfig(ADC1, ADC_Channel_4, 5, ADC_SampleTime_13Cycles5);
     ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 6, ADC_SampleTime_13Cycles5);
     ADC_RegularChannelConfig(ADC1, ADC_Channel_6, 7, ADC_SampleTime_13Cycles5);
-    // DMAÅäÖÃ
-    DMA_InitTypeDef dma;
-    dma.DMA_PeripheralBaseAddr = (uint32)&ADC1->DR;
-    dma.DMA_MemoryBaseAddr = (uint32)buf;
-    dma.DMA_DIR = DMA_DIR_PeripheralSRC;
-    dma.DMA_BufferSize = 7;
-    dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    dma.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
-    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
-    dma.DMA_Mode = DMA_Mode_Circular;
-    dma.DMA_Priority = DMA_Priority_High;
-    dma.DMA_M2M = DMA_M2M_Disable;
-    DMA_Init(DMA1_Channel1, &dma);
+
     // ¿ªÆôADCµÄDMA
     ADC_DMACmd(ADC1, ENABLE);
     ADC_Cmd(ADC1, ENABLE);

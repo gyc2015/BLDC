@@ -4,6 +4,7 @@ void SPI1_Init(void) {
     // ¿ªÆôÊ±ÖÓ ¶Ë¿ÚÖØÓ³Éä
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO,ENABLE);
     GPIO_PinRemapConfig(GPIO_Remap_SPI1,ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE); 
     // GPIO¶Ë¿ÚÅäÖÃ
     GPIO_InitTypeDef GPIO_InitStructure;
     // PB3->SCK, PB4->MISO, PB5->MOSI
@@ -34,10 +35,12 @@ void SPI1_Init(void) {
 }
 
 uint16 SPI1_Communicate(uint8 rw, uint8 addr, uint16 data) {
-    uint16 cmd = ((rw & 0x01) << 16) + ((addr & 0x0F) << 11) + (data & 0x07FF);
+    DRV8305_SELECT;
+    uint16 cmd = ((rw & 0x01) << 15) + ((addr & 0x0F) << 11) + (data & 0x07FF);
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
     SPI1->DR = cmd;
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+    DRV8305_nSELECT;
     return SPI1->DR;
 }
 
