@@ -1,7 +1,7 @@
 #include <board.h>
 
 void IO_Init(void) {
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOA, ENABLE);
     GPIO_InitTypeDef GPIO_InitStructure;
     // PA12->EN_GATE, Enables the gate driver and current shunt amplifiers
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;

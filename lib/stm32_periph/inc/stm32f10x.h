@@ -64,13 +64,13 @@
 
 #if !defined (STM32F10X_LD) && !defined (STM32F10X_LD_VL) && !defined (STM32F10X_MD) && !defined (STM32F10X_MD_VL) && !defined (STM32F10X_HD) && !defined (STM32F10X_HD_VL) && !defined (STM32F10X_XL) && !defined (STM32F10X_CL) 
   #define STM32F10X_LD     /*!< STM32F10X_LD: STM32 Low density devices */
-  /* #define STM32F10X_LD_VL */  /*!< STM32F10X_LD_VL: STM32 Low density Value Line devices */  
+  /* #define STM32F10X_LD_VL */ /*!< STM32F10X_LD_VL: STM32 Low density Value Line devices */  
   /* #define STM32F10X_MD */     /*!< STM32F10X_MD: STM32 Medium density devices */
   /* #define STM32F10X_MD_VL */  /*!< STM32F10X_MD_VL: STM32 Medium density Value Line devices */  
   /* #define STM32F10X_HD */     /*!< STM32F10X_HD: STM32 High density devices */
   /* #define STM32F10X_HD_VL */  /*!< STM32F10X_HD_VL: STM32 High density value line devices */  
   /* #define STM32F10X_XL */     /*!< STM32F10X_XL: STM32 XL-density devices */
-  /* #define STM32F10X_CL */     /*!< STM32F10X_CL: STM32 Connectivity line devices */
+  //#define STM32F10X_CL      /*!< STM32F10X_CL: STM32 Connectivity line devices */
 #endif
 /*  Tip: To avoid modifying this file each time you need to switch between these
         devices, you can define the device in your toolchain compiler preprocessor.
@@ -112,7 +112,7 @@
    Tip: To avoid modifying this file each time you need to use different HSE, you
         can define the HSE value in your toolchain compiler preprocessor.
   */           
-#define HSE_VALUE    ((uint32_t)8000000)
+#define HSE_VALUE    ((uint32_t)16000000)
 
 
 /**
@@ -1080,15 +1080,8 @@ typedef struct
   __IO uint32_t BDCR;
   __IO uint32_t CSR;
 
-#ifdef STM32F10X_CL  
   __IO uint32_t AHBRSTR;
   __IO uint32_t CFGR2;
-#endif /* STM32F10X_CL */ 
-
-#if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)   
-  uint32_t RESERVED0;
-  __IO uint32_t CFGR2;
-#endif /* STM32F10X_LD_VL || STM32F10X_MD_VL || STM32F10X_HD_VL */ 
 } RCC_TypeDef;
 
 /** 
@@ -1683,12 +1676,12 @@ typedef struct
 #define  RCC_CR_PLLON                        ((uint32_t)0x01000000)        /*!< PLL enable */
 #define  RCC_CR_PLLRDY                       ((uint32_t)0x02000000)        /*!< PLL clock ready flag */
 
-#ifdef STM32F10X_CL
+
  #define  RCC_CR_PLL2ON                       ((uint32_t)0x04000000)        /*!< PLL2 enable */
  #define  RCC_CR_PLL2RDY                      ((uint32_t)0x08000000)        /*!< PLL2 clock ready flag */
  #define  RCC_CR_PLL3ON                       ((uint32_t)0x10000000)        /*!< PLL3 enable */
  #define  RCC_CR_PLL3RDY                      ((uint32_t)0x20000000)        /*!< PLL3 clock ready flag */
-#endif /* STM32F10X_CL */
+
 
 /*******************  Bit definition for RCC_CFGR register  *******************/
 /*!< SW configuration */
@@ -2170,7 +2163,6 @@ typedef struct
 #define  RCC_CSR_WWDGRSTF                    ((uint32_t)0x40000000)        /*!< Window watchdog reset flag */
 #define  RCC_CSR_LPWRRSTF                    ((uint32_t)0x80000000)        /*!< Low-Power reset flag */
 
-#ifdef STM32F10X_CL
 /*******************  Bit definition for RCC_AHBRSTR register  ****************/
  #define  RCC_AHBRSTR_OTGFSRST               ((uint32_t)0x00001000)         /*!< USB OTG FS reset */
  #define  RCC_AHBRSTR_ETHMACRST              ((uint32_t)0x00004000)         /*!< ETHERNET MAC reset */
@@ -2263,7 +2255,6 @@ typedef struct
  #define  RCC_CFGR2_PREDIV1SRC_HSE           ((uint32_t)0x00000000)        /*!< HSE selected as PREDIV1 entry clock source */
  #define  RCC_CFGR2_I2S2SRC                  ((uint32_t)0x00020000)        /*!< I2S2 entry clock source */
  #define  RCC_CFGR2_I2S3SRC                  ((uint32_t)0x00040000)        /*!< I2S3 clock source */
-#endif /* STM32F10X_CL */
 
 #if defined (STM32F10X_LD_VL) || defined (STM32F10X_MD_VL) || defined (STM32F10X_HD_VL)
 /*******************  Bit definition for RCC_CFGR2 register  ******************/

@@ -1,7 +1,9 @@
 ﻿# 工程项目
-/pro
-!/pro/*.uvoptx
-!/pro/*.uvprojx
+/pro/DebugConfig
+/pro/Listings
+/pro/Objects
+/pro/*.uvoptx
+/pro/*.uvguix.*
 
 /vsproc
 
