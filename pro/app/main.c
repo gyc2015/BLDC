@@ -17,6 +17,131 @@ void NVIC_Configuration(void){
 uint8 tmp = 0;
 double duty = 0.0;
 uint16 adcvalues[7];
+bool gRotate = FALSE;
+bool gDir = TRUE;
+
+uint8 remap_hall(uint8 hall) {
+    switch (hall) {
+    case 0x5: return 0x6; // 101(ACB) -> 110(ABC)
+    case 0x4: return 0x4; // 100(ACB) -> 100(ABC)
+    case 0x6: return 0x5; // 110(ACB) -> 101(ABC)
+    case 0x2: return 0x01; // 010(ACB) -> 001(ABC)
+    case 0x3: return 0x3; // 011 -> 011
+    case 0x1: return 0x2;  // 001 -> 010
+    default: return 0x0;
+    }
+}
+
+uint8 remap_hall2(uint8 hall) {
+    uint8 re = remap_hall(hall) << 1;
+    re += (hall & 0x1);
+    return re & 0x07;
+}
+
+void nrotate_motor() {
+    // ABC
+    uint8 hall = Hall_GetStatus();
+    hall = remap_hall(hall);
+    
+    PWM_Set_Duty(&PWM_HA, 0);
+    PWM_Set_Duty(&PWM_HB, 0);
+    PWM_Set_Duty(&PWM_HC, 0);
+    PWM_Set_Duty(&PWM_LA, 0);
+    PWM_Set_Duty(&PWM_LB, 0);
+    PWM_Set_Duty(&PWM_LC, 0);
+    
+    if (FALSE == gRotate)
+        return;
+    
+    switch (hall) {
+    case 0x5:
+        // 101 -> T3, T2
+        PWM_Set_Duty(&PWM_HB, duty);
+        PWM_Set_Duty(&PWM_LA, 1);
+        break;
+    case 0x4:
+        // 100 -> T5, T2
+        PWM_Set_Duty(&PWM_HC, duty);
+        PWM_Set_Duty(&PWM_LA, 1);
+        break;
+    case 0x6:
+        // 110 -> T5, T4
+        PWM_Set_Duty(&PWM_HC, duty);
+        PWM_Set_Duty(&PWM_LB, 1);
+        break;
+    case 0x2:
+        // 010 -> T1, T4
+        PWM_Set_Duty(&PWM_HA, duty);
+        PWM_Set_Duty(&PWM_LB, 1);
+        break;
+    case 0x3:
+        // 011 -> T1, T6
+        PWM_Set_Duty(&PWM_HA, duty);
+        PWM_Set_Duty(&PWM_LC, 1);
+        break;
+    case 0x1:
+        // 001 -> T3, T6
+        PWM_Set_Duty(&PWM_HB, duty);
+        PWM_Set_Duty(&PWM_LC, 1);
+        break;
+    default:
+        // 不可能的状态
+        break;
+    }
+}
+
+void rotate_motor() {
+    // ABC
+    uint8 hall = Hall_GetStatus();
+    hall = remap_hall(hall);
+    
+    PWM_Set_Duty(&PWM_HA, 0);
+    PWM_Set_Duty(&PWM_HB, 0);
+    PWM_Set_Duty(&PWM_HC, 0);
+    PWM_Set_Duty(&PWM_LA, 0);
+    PWM_Set_Duty(&PWM_LB, 0);
+    PWM_Set_Duty(&PWM_LC, 0);
+    
+    if (FALSE == gRotate)
+        return;
+    
+    switch (hall) {
+    case 0x5:
+        // 101 -> T1, T4
+        PWM_Set_Duty(&PWM_HA, duty);
+        PWM_Set_Duty(&PWM_LB, 1);
+        break;
+    case 0x4:
+        // 100 -> T1, T6
+        PWM_Set_Duty(&PWM_HA, duty);
+        PWM_Set_Duty(&PWM_LC, 1);
+        break;
+    case 0x6:
+        // 110 -> T3, T6
+        PWM_Set_Duty(&PWM_HB, duty);
+        PWM_Set_Duty(&PWM_LC, 1);
+        break;
+    case 0x2:
+        // 010 -> T3, T2
+        PWM_Set_Duty(&PWM_HB, duty);
+        PWM_Set_Duty(&PWM_LA, 1);
+        break;
+    case 0x3:
+        // 011 -> T5, T2
+        PWM_Set_Duty(&PWM_HC, duty);
+        PWM_Set_Duty(&PWM_LA, 1);
+        break;
+    case 0x1:
+        // 001 -> T5, T4
+        PWM_Set_Duty(&PWM_HC, duty);
+        PWM_Set_Duty(&PWM_LB, 1);
+        break;
+    default:
+        // 不可能的状态
+        break;
+    }
+}
+
 
 int main(void) {
     USART1_Init(115200);
@@ -86,10 +211,10 @@ int main(void) {
                 PWM_Set_Duty(&PWM_HC, 0);
                 break;
             case 'D':
-                printf("PVDDSENSE = %fV\r\n", 3.3 * adcvalues[0] / 4095 * 54.8 / 20);
-                printf("CSENSE = %fV\r\n", 3.3 * adcvalues[1] / 4095 * 54.8 / 20);
-                printf("BSENSE = %fV\r\n", 3.3 * adcvalues[2] / 4095 * 54.8 / 20);
-                printf("ASENSE = %fV\r\n", 3.3 * adcvalues[3] / 4095 * 54.8 / 20);
+//                printf("PVDDSENSE = %fV\r\n", 3.3 * adcvalues[0] / 4095 * 54.8 / 20);
+//                printf("CSENSE = %fV\r\n", 3.3 * adcvalues[1] / 4095 * 54.8 / 20);
+//                printf("BSENSE = %fV\r\n", 3.3 * adcvalues[2] / 4095 * 54.8 / 20);
+//                printf("ASENSE = %fV\r\n", 3.3 * adcvalues[3] / 4095 * 54.8 / 20);
                 printf("SO1 = %d\r\n", adcvalues[4]);
                 printf("SO2 = %d\r\n", adcvalues[5]);
                 printf("SO3 = %d\r\n", adcvalues[6]);
@@ -108,6 +233,8 @@ int main(void) {
                 printf("0x0C VDS Sense Control = %x\r\n", SPI1_Communicate(1, 0x0C, 0));
                 break;
             case 'E':
+                SPI1_Communicate(0, 5, 0x3BB);
+                SPI1_Communicate(0, 6, 0x3BB);
                 printf("EN_GATE = 1\r\n");
                 EN_GATE = 1;
                 break;
@@ -118,15 +245,57 @@ int main(void) {
             case 'f':
                 SPI1_Communicate(0, 5, 0x344);
                 SPI1_Communicate(0, 6, 0x344);
-                SPI1_Communicate(0, 7, 0x80);
-                SPI1_Communicate(0, 0x0C, 0x3C8);
+                SPI1_Communicate(0, 7, 0x216);
+                SPI1_Communicate(0, 0x0C, 0x2C8);
                 printf("0x05 HS Gate Driver = %x\r\n", SPI1_Communicate(1, 5, 0));
                 printf("0x06 LS Gate Driver = %x\r\n", SPI1_Communicate(1, 6, 0));
                 printf("0x07 Gate Driver Control = %x\r\n", SPI1_Communicate(1, 7, 0));
                 printf("0x0C VDS Sense Control = %x\r\n", SPI1_Communicate(1, 0x0C, 0));
                 break;
+            case 'g':
+                duty += 0.01;
+                printf("H:duty = %f\r\n", duty);
+                gRotate = TRUE;
+                gDir = TRUE;
+                break;
+            case 'G':
+                duty -= 0.01;
+                printf("H:duty = %f\r\n", duty);
+                gRotate = TRUE;
+                gDir = TRUE;
+                break;
+            case 'h':
+                duty += 0.1;
+                printf("H:duty = %f\r\n", duty);
+                gRotate = TRUE;
+                gDir = TRUE;
+                break;
+            case 'H':
+                duty -= 0.1;
+                printf("H:duty = %f\r\n", duty);
+                gRotate = TRUE;
+                gDir = TRUE;
+                break;
+            case 'i':
+                duty = 0.3;
+                printf("H:duty = %f\r\n", duty);
+                gRotate = TRUE;
+                gDir = TRUE;
+                //rotate_motor();
+                break;
+            case 'I':
+                duty = 0.3;
+                printf("H:duty = %f\r\n", duty);
+                gRotate = TRUE;
+                gDir = FALSE;
+                //nrotate_motor();
+                break;
             }
         }
+        if (TRUE == gDir)
+            rotate_motor();
+        else
+            nrotate_motor();
     }
 }
 
