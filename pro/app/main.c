@@ -84,6 +84,8 @@ void nrotate_motor() {
     }
 }
 
+
+
 void rotate_motor() {
     // ABC
     uint8 hall = Hall_GetStatus();
@@ -154,20 +156,18 @@ int main(void) {
     Delay_ms(100);
     SPI1_Communicate(0, 5, 0x3BB);
     SPI1_Communicate(0, 6, 0x3BB);
-    duty = 0.4;
+    SPI1_Communicate(0, 9, 0x322);
+    duty = 0.7;
     gRotate = TRUE;
     EN_GATE = 1;
     
     while (1) {
-        if ((0 == USART1_KEY_1) && (0 != USART1_KEY_2)) {
+        if ((0 == USART1_KEY_1) && (0 != USART1_KEY_2))
             gCState = 1;
-        }
-        else if ((0 == USART1_KEY_2) && (0 != USART1_KEY_1)) {
+        else if ((0 == USART1_KEY_2) && (0 != USART1_KEY_1))
             gCState = 2;                
-        }
-        else {
+        else
             gCState = 3;
-        }
         
         if (gCState != gState) {
             gSCount = 0;
@@ -178,12 +178,16 @@ int main(void) {
         gState = gCState;
 
         if (gSCount > 10000) {
-            EN_GATE = 1;
             gSCount = 10000;
-            if (1 == gCState)
+            if (1 == gCState) {
+                EN_GATE = 1;
                 rotate_motor();
-            else if (2 == gCState)
+            } else if (2 == gCState) {
+                EN_GATE = 1;
                 nrotate_motor(); 
+            } else {
+                EN_GATE = 0;
+            }
         }
     }
 }
