@@ -58,7 +58,7 @@ void EXTI15_10_IRQHandler(void) {
             gCurExt = HallExti_ARising;
             if (gCurExt == gPosExt) {
                 gCount++;
-            } else if (gCurExt == gNegExt || gCurExt == gNcurExt) {
+            } else if (gCurExt == gNegExt) {
                 gCount--;
             }
             gNcurExt = HallExti_AFaling;
@@ -68,7 +68,7 @@ void EXTI15_10_IRQHandler(void) {
             gCurExt = HallExti_AFaling;
             if (gCurExt == gPosExt) {
                 gCount++;
-            } else if (gCurExt == gNegExt || gCurExt == gNcurExt) {
+            } else if (gCurExt == gNegExt) {
                 gCount--;
             }
             gNcurExt = HallExti_ARising;
@@ -83,7 +83,7 @@ void EXTI15_10_IRQHandler(void) {
             gCurExt = HallExti_BRising;
             if (gCurExt == gPosExt) {
                 gCount++;
-            } else if (gCurExt == gNegExt || gCurExt == gNcurExt) {
+            } else if (gCurExt == gNegExt) {
                 gCount--;
             }
             gNcurExt = HallExti_BFaling;
@@ -93,7 +93,7 @@ void EXTI15_10_IRQHandler(void) {
             gCurExt = HallExti_BFaling;
             if (gCurExt == gPosExt) {
                 gCount++;
-            } else if (gCurExt == gNegExt || gCurExt == gNcurExt) {
+            } else if (gCurExt == gNegExt) {
                 gCount--;
             }
             gNcurExt = HallExti_BRising;
@@ -108,7 +108,7 @@ void EXTI15_10_IRQHandler(void) {
             gCurExt = HallExti_CRising;
             if (gCurExt == gPosExt) {
                 gCount++;
-            } else if (gCurExt == gNegExt || gCurExt == gNcurExt) {
+            } else if (gCurExt == gNegExt) {
                 gCount--;
             }
             gNcurExt = HallExti_CFaling;
@@ -118,7 +118,7 @@ void EXTI15_10_IRQHandler(void) {
             gCurExt = HallExti_CFaling;
             if (gCurExt == gPosExt) {
                 gCount++;
-            } else if (gCurExt == gNegExt || gCurExt == gNcurExt) {
+            } else if (gCurExt == gNegExt) {
                 gCount--;
             }
             gNcurExt = HallExti_CRising;
