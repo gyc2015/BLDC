@@ -12,27 +12,37 @@ void NVIC_Configuration(void){
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+    // EXTI 中断配置
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 }
 
-uint8 tmp = 0;
-double duty = 0.0;
+
+#define BLDC_DIR_POSITIVE 1
+#define BLDC_DIR_NEGTIVE 0
+
+uint8 gCmd = 0;
+double gDuty = 0.0;
 uint16 adcvalues[7];
-bool gRotate = FALSE;
-bool gDir = TRUE;
+bool gCmdRotate = FALSE;
+uint8 gCmdDir = BLDC_DIR_POSITIVE;
 
 uint8 remap_hall(uint8 hall) {
     switch (hall) {
     case 0x5: return 0x6; // 101(ACB) -> 110(ABC)
     case 0x4: return 0x4; // 100(ACB) -> 100(ABC)
     case 0x6: return 0x5; // 110(ACB) -> 101(ABC)
-    case 0x2: return 0x01; // 010(ACB) -> 001(ABC)
+    case 0x2: return 0x1; // 010(ACB) -> 001(ABC)
     case 0x3: return 0x3; // 011 -> 011
     case 0x1: return 0x2;  // 001 -> 010
     default: return 0x0;
     }
 }
 
-void nrotate_motor() {
+void nrotate_motor(double duty) {
     // ABC
     uint8 hall = Hall_GetStatus();
     hall = remap_hall(hall);
@@ -44,7 +54,7 @@ void nrotate_motor() {
     PWM_Set_Duty(&PWM_LB, 0);
     PWM_Set_Duty(&PWM_LC, 0);
     
-    if (FALSE == gRotate)
+    if (FALSE == gCmdRotate)
         return;
     
     switch (hall) {
@@ -84,7 +94,7 @@ void nrotate_motor() {
     }
 }
 
-void rotate_motor() {
+void rotate_motor(double duty) {
     // ABC
     uint8 hall = Hall_GetStatus();
     hall = remap_hall(hall);
@@ -96,7 +106,7 @@ void rotate_motor() {
     PWM_Set_Duty(&PWM_LB, 0);
     PWM_Set_Duty(&PWM_LC, 0);
     
-    if (FALSE == gRotate)
+    if (FALSE == gCmdRotate)
         return;
     
     switch (hall) {
@@ -153,25 +163,22 @@ int main(void) {
     Delay_ms(100);
     SPI1_Communicate(0, 9, 0x322);
     while (1) {
-        if (TRUE == gDir)
-            rotate_motor();
+        if (BLDC_DIR_POSITIVE == gCmdDir)
+            rotate_motor(gDuty);
         else
-            nrotate_motor();
-        
-        if (!nFAULT) {
-            //SPI1_Communicate(0, 9, 0x322);
-        }
+            nrotate_motor(gDuty);
         
         while (!is_queue_empty(&gU1RxQ)) {
-            dequeue(&gU1RxQ, &tmp);
-            USART1_SendByte(tmp);
-            switch (tmp) {
+            dequeue(&gU1RxQ, &gCmd);
+            USART1_SendByte(gCmd);
+            switch (gCmd) {
             case 'a':
-                printf("Hall:0x%2x",Hall_GetStatus());
+                printf("Hall:0x%2x\r\n",Hall_GetStatus());
+                printf("gCount: %d\r\n", gCount);
                 if (1 == nFAULT)
-                    printf("DRV8305正常");
+                    printf("DRV8305正常\r\n");
                 else
-                    printf("DRV8305出错");
+                    printf("DRV8305出错\r\n");
                 break;
             case 'A':
                 PWM_DeInit();
@@ -219,41 +226,41 @@ int main(void) {
                 printf("0x0C VDS Sense Control = %x\r\n", SPI1_Communicate(1, 0x0C, 0));
                 break;
             case 'g':
-                duty += 0.01;
-                printf("H:duty = %f\r\n", duty);
-                gRotate = TRUE;
-                gDir = TRUE;
+                gDuty += 0.01;
+                printf("H:duty = %f\r\n", gDuty);
+                gCmdRotate = TRUE;
+                gCmdDir = BLDC_DIR_POSITIVE;
                 break;
             case 'G':
-                duty -= 0.01;
-                printf("H:duty = %f\r\n", duty);
-                gRotate = TRUE;
-                gDir = TRUE;
+                gDuty -= 0.01;
+                printf("H:duty = %f\r\n", gDuty);
+                gCmdRotate = TRUE;
+                gCmdDir = BLDC_DIR_POSITIVE;
                 break;
             case 'h':
-                duty += 0.1;
-                printf("H:duty = %f\r\n", duty);
-                gRotate = TRUE;
-                gDir = TRUE;
+                gDuty += 0.1;
+                printf("H:duty = %f\r\n", gDuty);
+                gCmdRotate = TRUE;
+                gCmdDir = BLDC_DIR_POSITIVE;
                 break;
             case 'H':
-                duty -= 0.1;
-                printf("H:duty = %f\r\n", duty);
-                gRotate = TRUE;
-                gDir = TRUE;
+                gDuty -= 0.1;
+                printf("H:duty = %f\r\n", gDuty);
+                gCmdRotate = TRUE;
+                gCmdDir = BLDC_DIR_POSITIVE;
                 break;
             case 'i':
-                duty = 0.5;
-                printf("H:duty = %f\r\n", duty);
-                gRotate = TRUE;
-                gDir = TRUE;
+                gDuty = 0.5;
+                printf("H:duty = %f\r\n", gDuty);
+                gCmdRotate = TRUE;
+                gCmdDir = BLDC_DIR_POSITIVE;
                 //rotate_motor();
                 break;
             case 'I':
-                duty = 0.55;
-                printf("H:duty = %f\r\n", duty);
-                gRotate = TRUE;
-                gDir = FALSE;
+                gDuty = 0.55;
+                printf("H:duty = %f\r\n", gDuty);
+                gCmdRotate = TRUE;
+                gCmdDir = BLDC_DIR_NEGTIVE;
                 //nrotate_motor();
                 break;
             }

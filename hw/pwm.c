@@ -8,7 +8,7 @@
 /*
  * 系统频率 72MHz PWM频率 72KHz
  */
-#define PRESCALER 2
+#define PRESCALER 1
 #define PERIOD 1000
 
 /*
