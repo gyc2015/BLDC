@@ -602,6 +602,11 @@
               <FileType>1</FileType>
               <FilePath>.\app\drv8305.c</FilePath>
             </File>
+            <File>
+              <FileName>bldc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\app\bldc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

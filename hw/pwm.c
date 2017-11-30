@@ -133,7 +133,7 @@ void PWM_DeInit(void) {
 /*
  * PWM_Set_Duty - 设定PWM输出占空比
  */
-void PWM_Set_Duty(volatile uint16 *channel, double n) {
+void PWM_Set_Duty(volatile uint16 *channel, float n) {
     *channel = PERIOD * n;
 }
 

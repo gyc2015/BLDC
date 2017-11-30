@@ -12,7 +12,7 @@
 
 void PWM_Init(void);
 void PWM_DeInit(void);
-void PWM_Set_Duty(volatile uint16 *channel, double n);
+void PWM_Set_Duty(volatile uint16 *channel, float n);
 
 
 #endif
