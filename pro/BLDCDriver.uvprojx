@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\lib\stm32_cmsis\inc;..\lib\stm32_periph\inc;..\lib\utils\inc;..\inc</IncludePath>
+              <IncludePath>..\lib\stm32_cmsis\inc;..\lib\stm32_periph\inc;..\lib\utils\inc;..\inc;.\app</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -597,6 +597,11 @@
               <FileType>1</FileType>
               <FilePath>.\app\gVariables.c</FilePath>
             </File>
+            <File>
+              <FileName>drv8305.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\app\drv8305.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -621,6 +626,11 @@
               <FileName>utils.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\lib\utils\src\utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>command.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\lib\utils\src\command.c</FilePath>
             </File>
           </Files>
         </Group>

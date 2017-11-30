@@ -42,7 +42,7 @@ int get_queue_size(Queue_T *q) {
  * @q: 目标队列
  * return: TRUE-空
  */
-bool is_queue_empty(Queue_T *q) {
+BOOL is_queue_empty(Queue_T *q) {
     fix_queue_edge(q);
     return (q->head == q->tail) ? TRUE : FALSE;
 }
@@ -52,7 +52,7 @@ bool is_queue_empty(Queue_T *q) {
  * @q: 目标队列
  * return: TRUE-满
  */
-bool is_queue_full(Queue_T *q) {
+BOOL is_queue_full(Queue_T *q) {
     return (q->size <= get_queue_size(q)) ? TRUE : FALSE;
 }
 /*
@@ -62,7 +62,7 @@ bool is_queue_full(Queue_T *q) {
  * @data: 数据
  * return: TRUE-成功插入队列
  */
-bool enqueue(Queue_T *q, uint8 data) {
+BOOL enqueue(Queue_T *q, uint8 data) {
     // 队列已满
     if (is_queue_full(q))
         return FALSE;
@@ -78,7 +78,7 @@ bool enqueue(Queue_T *q, uint8 data) {
  * @re[OUT]: 输出数据
  * return: TRUE-成功出队
  */
-bool dequeue(Queue_T *q, uint8 *re) {
+BOOL dequeue(Queue_T *q, uint8 *re) {
     // 队列为空
     if (is_queue_empty(q))
         return FALSE;

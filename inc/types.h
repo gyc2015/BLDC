@@ -11,7 +11,7 @@ typedef unsigned long   uint32;
 typedef float           float32;
 typedef long double     float64;
 
-typedef unsigned char   bool;
+typedef unsigned char   BOOL;
 
 #ifndef TRUE
 #define TRUE 1

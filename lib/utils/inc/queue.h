@@ -30,14 +30,14 @@ int get_queue_size(Queue_T *q);
  * @q: 目标队列
  * return: TRUE-空
  */
-bool is_queue_empty(Queue_T *q);
+BOOL is_queue_empty(Queue_T *q);
 /*
  * is_queue_full - 查询队列是否full
  *
  * @q: 目标队列
  * return: TRUE-满
  */
-bool is_queue_full(Queue_T *q);
+BOOL is_queue_full(Queue_T *q);
 /*
  * enqueue - 将数据插入队尾
  *
@@ -45,7 +45,7 @@ bool is_queue_full(Queue_T *q);
  * @data: 数据
  * return: TRUE-成功插入队列
  */
-bool enqueue(Queue_T *q, uint8 data);
+BOOL enqueue(Queue_T *q, uint8 data);
 /*
  * dequeue - 队首数据出队
  *
@@ -53,7 +53,7 @@ bool enqueue(Queue_T *q, uint8 data);
  * @re[OUT]: 输出数据
  * return: TRUE-成功出队
  */
-bool dequeue(Queue_T *q, uint8 *re);
+BOOL dequeue(Queue_T *q, uint8 *re);
 
 void clear_queue(Queue_T *q);
 #endif
