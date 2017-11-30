@@ -1,13 +1,19 @@
 #include <board.h>
 
 /*
- * NVIC_Configuration - 中断优先级配置
+ * NVIC_Configuration - ???????
  */
 void NVIC_Configuration(void){	
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	// USART1 中断配置
+	// USART1 ????
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+        // EXTI ????
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
@@ -79,7 +85,7 @@ void nrotate_motor() {
         PWM_Set_Duty(&PWM_LC, 1);
         break;
     default:
-        // 不可能的状态
+        // ??????
         break;
     }
 }
@@ -133,7 +139,7 @@ void rotate_motor() {
         PWM_Set_Duty(&PWM_LB, 1);
         break;
     default:
-        // 不可能的状态
+        // ??????
         break;
     }
 }
@@ -151,7 +157,7 @@ int main(void) {
     IO_Init();
     SPI1_Init();
 
-    //NVIC_Configuration();
+    NVIC_Configuration();
     
     Delay_ms(100);
     SPI1_Communicate(0, 5, 0x3BB);
@@ -182,13 +188,20 @@ int main(void) {
             if (1 == gCState) {
                 EN_GATE = 1;
                 rotate_motor();
+                if (gCount < -1000)
+                    duty = 0.3;
+                else if (gCount < -300)
+                    duty = 0.5;
+                else if (gCount < -200)
+                    duty = 0.7;
             } else if (2 == gCState) {
                 EN_GATE = 1;
                 nrotate_motor(); 
             } else {
+                gCount = 0;
+                duty = 0.7;
                 EN_GATE = 0;
             }
         }
     }
 }
-
