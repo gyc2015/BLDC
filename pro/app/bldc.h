@@ -41,5 +41,7 @@ struct BLDC {
 #pragma pack ()
 
 void BLDC_Init(struct BLDC *bldc);
+void BLDC_NRotate(struct BLDC *bldc);
+void BLDC_Rotate(struct BLDC *bldc);
 
 #endif

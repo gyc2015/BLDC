@@ -87,6 +87,22 @@ BOOL dequeue(Queue_T *q, uint8 *re) {
     q->head++;
     return TRUE;
 }
+/*
+ * peek_queue - 窥视队首数据
+ *
+ * @q: 目标队列
+ * @re[OUT]: 输出数据
+ * return: TRUE-成功窥视
+ */
+BOOL peek_queue(Queue_T *q, uint8 *re) {
+    // 队列为空
+    if (is_queue_empty(q))
+        return FALSE;
+
+    *re = q->buffer[q->head];
+    return TRUE;
+}
+
 
 void clear_queue(Queue_T *q) {
 	q->head = 0;

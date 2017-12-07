@@ -4,28 +4,10 @@
 #include <bldc.h>
 #include <xtos.h>
 
-#define TASKA_STK_SIZE 512
-#define TASKB_STK_SIZE 512
+int gSCount = 0;
 
-static uint32 taskA_Stk[TASKA_STK_SIZE];
-static uint32 taskB_Stk[TASKB_STK_SIZE];
-
-static struct xtos_task_descriptor taskA;
-static struct xtos_task_descriptor taskB;
-
-void taska() {
-    while (1) {
-        printf("A\r\n");
-        xtos_delay_ticks(1000);
-    }
-}
-
-void taskb() {
-    while (1) {
-        printf("B\r\n");
-        xtos_delay_ticks(1000);
-    }
-}
+struct Drv8305 gDrv8305;
+struct BLDC gBldc;
 
 
 /*
@@ -46,124 +28,6 @@ void NVIC_Configuration(void){
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
-}
-
-
-int gSCount = 0;
-
-struct Drv8305 gDrv8305;
-struct BLDC gBldc;
-
-uint8 remap_hall(uint8 hall) {
-    switch (hall) { // CAB
-    case 0x5: return 0x6;  // 101(ACB) -> 110(ABC)
-    case 0x4: return 0x4;  // 100(ACB) -> 100(ABC)
-    case 0x6: return 0x5;  // 110(ACB) -> 101(ABC)
-    case 0x2: return 0x1;  // 010(ACB) -> 001(ABC)
-    case 0x3: return 0x3;  // 011(ACB) -> 011(ABC)
-    case 0x1: return 0x2;  // 001(ACB) -> 010(ABC)
-    default: return 0x0;
-    }
-}
-
-void nrotate_motor(struct BLDC *bldc) {
-    // ABC
-    uint8 hall = Hall_GetStatus();
-    hall = remap_hall(hall);
-    
-    PWM_Set_Duty(&PWM_HA, 0);
-    PWM_Set_Duty(&PWM_HB, 0);
-    PWM_Set_Duty(&PWM_HC, 0);
-    PWM_Set_Duty(&PWM_LA, 0);
-    PWM_Set_Duty(&PWM_LB, 0);
-    PWM_Set_Duty(&PWM_LC, 0);
-    
-    switch (hall) {
-    case 0x5:
-        // 101 -> T3, T2
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x4:
-        // 100 -> T5, T2
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x6:
-        // 110 -> T5, T4
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    case 0x2:
-        // 010 -> T1, T4
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    case 0x3:
-        // 011 -> T1, T6
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    case 0x1:
-        // 001 -> T3, T6
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    default:
-        // ??????
-        break;
-    }
-}
-
-
-
-void rotate_motor(struct BLDC *bldc) {
-    // ABC
-    uint8 hall = Hall_GetStatus();
-    hall = remap_hall(hall);
-    
-    PWM_Set_Duty(&PWM_HA, 0);
-    PWM_Set_Duty(&PWM_HB, 0);
-    PWM_Set_Duty(&PWM_HC, 0);
-    PWM_Set_Duty(&PWM_LA, 0);
-    PWM_Set_Duty(&PWM_LB, 0);
-    PWM_Set_Duty(&PWM_LC, 0);
-    
-    switch (hall) {
-    case 0x5:
-        // 101 -> T1, T4
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    case 0x4:
-        // 100 -> T1, T6
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    case 0x6:
-        // 110 -> T3, T6
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    case 0x2:
-        // 010 -> T3, T2
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x3:
-        // 011 -> T5, T2
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x1:
-        // 001 -> T5, T4
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    default:
-        // 不可能的状态
-        break;
-    }
 }
 
 BOOL CheckAddress(uint16 add) {
@@ -217,6 +81,60 @@ uint8 GetRegister(uint16 addr) {
     return 0;
 }
 
+
+#define TASKA_STK_SIZE 512
+#define TASKB_STK_SIZE 512
+
+static uint32 taskA_Stk[TASKA_STK_SIZE];
+static uint32 taskB_Stk[TASKB_STK_SIZE];
+
+static struct xtos_task_descriptor taskA;
+static struct xtos_task_descriptor taskB;
+
+void taska() {
+    uint16 head = 0x55AA;
+    union CmdAddr cmd;
+    uint16 len = 0;
+    uint8 tmptype = 0;
+    cmd.all = 0;
+    while (1) {
+        if (!Cmd_ParseStream(&gU1RxQ, (uint8*)&head, 2))
+            continue;
+        
+        cmd.all = Cmd_ParseHalfWord(&gU1RxQ);
+        len = Cmd_ParseHalfWord(&gU1RxQ);
+        
+        while (len > 0) {
+            if (TRUE == CheckAddress(cmd.bits.addr)) {
+                if (1 == cmd.bits.rw) {
+                    // 来自上位机的写指令
+                    Cmd_ParseBytes(&gU1RxQ, &tmptype, 1);
+                    SetRegister(cmd.bits.addr, tmptype);
+                } else {
+                    // 来自上位机的读指令
+                    USART1_SendByte(GetRegister(cmd.bits.addr));
+                }
+            }
+            cmd.all++;
+            len--;
+        }
+    }
+}
+
+void taskb() {
+    while (1) {
+        EN_GATE = gBldc.cmd.bits.en;
+        if (gBldc.cmd.bits.en) {
+            if (gBldc.cmd.bits.dir)
+                BLDC_Rotate(&gBldc);
+            else
+                BLDC_NRotate(&gBldc);            
+        }
+        xtos_schedule();
+    }
+}
+
+
 #define SysTicks_Irq_n 15
 /*
  * systick_init - 系统时钟初始化
@@ -246,7 +164,6 @@ int main(void) {
     IO_Init();
     SPI1_Init();
 
-    Cmd_Init(&gU1RxQ, CheckAddress, SetRegister, GetRegister);
     NVIC_Configuration();
     
     _delay(1000);
@@ -261,15 +178,4 @@ int main(void) {
     xtos_init_task_descriptor(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
     xtos_init_task_descriptor(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1], 1);
     xtos_start();
-    
-//    while (1) {
-//        EN_GATE = gBldc.cmd.bits.en;
-//        if (gBldc.cmd.bits.en) {
-//            if (gBldc.cmd.bits.dir)
-//                rotate_motor(&gBldc);
-//            else
-//                nrotate_motor(&gBldc);            
-//        }
-//        Cmd_Parse();
-//    }
 }

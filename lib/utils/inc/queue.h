@@ -54,6 +54,14 @@ BOOL enqueue(Queue_T *q, uint8 data);
  * return: TRUE-成功出队
  */
 BOOL dequeue(Queue_T *q, uint8 *re);
+/*
+ * peek_queue - 窥视队首数据
+ *
+ * @q: 目标队列
+ * @re[OUT]: 输出数据
+ * return: TRUE-成功窥视
+ */
+BOOL peek_queue(Queue_T *q, uint8 *re);
 
 void clear_queue(Queue_T *q);
 #endif
