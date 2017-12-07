@@ -2,6 +2,32 @@
 #include <command.h>
 #include <drv8305.h>
 #include <bldc.h>
+#include <xtos.h>
+
+#define TASKA_STK_SIZE 512
+#define TASKB_STK_SIZE 512
+
+static uint32 taskA_Stk[TASKA_STK_SIZE];
+static uint32 taskB_Stk[TASKB_STK_SIZE];
+
+static struct xtos_task_descriptor taskA;
+static struct xtos_task_descriptor taskB;
+
+void taska() {
+    while (1) {
+        printf("A\r\n");
+        xtos_delay_ticks(1000);
+    }
+}
+
+void taskb() {
+    while (1) {
+        printf("B\r\n");
+        xtos_delay_ticks(1000);
+    }
+}
+
+
 /*
  * NVIC_Configuration - 中断优先级配置
  */
@@ -191,8 +217,28 @@ uint8 GetRegister(uint16 addr) {
     return 0;
 }
 
+#define SysTicks_Irq_n 15
+/*
+ * systick_init - 系统时钟初始化
+ *
+ * @ticks: 系统时钟频率(MHz)
+ */
+void systick_init(uint32 ticks) {
+    SysTick->LOAD = (0x00FFFFFF & ticks);
+    SysTick->VAL = 0;
+
+    SCB->SHP[SysTicks_Irq_n - 4] = 0x00;
+    
+    
+    SysTick->CTRL = 0x07;
+}
+
+
+void SysTick_Handler(void) {
+    xtos_tick();
+}
+
 int main(void) {
-    Init_Delay(72);
     USART1_Init(115200);
     Hall_Init();
     PWM_Init();
@@ -203,21 +249,27 @@ int main(void) {
     Cmd_Init(&gU1RxQ, CheckAddress, SetRegister, GetRegister);
     NVIC_Configuration();
     
-    Delay_ms(100);
+    _delay(1000);
     
     BLDC_Init(&gBldc);
     DRV_Init(&gDrv8305);
     EN_GATE = 0;
     printf("wuhahaha\r\n");
 
-    while (1) {
-        EN_GATE = gBldc.cmd.bits.en;
-        if (gBldc.cmd.bits.en) {
-            if (gBldc.cmd.bits.dir)
-                rotate_motor(&gBldc);
-            else
-                nrotate_motor(&gBldc);            
-        }
-        Cmd_Parse();
-    }
+    systick_init(72000);
+    xtos_init();
+    xtos_init_task_descriptor(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
+    xtos_init_task_descriptor(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1], 1);
+    xtos_start();
+    
+//    while (1) {
+//        EN_GATE = gBldc.cmd.bits.en;
+//        if (gBldc.cmd.bits.en) {
+//            if (gBldc.cmd.bits.dir)
+//                rotate_motor(&gBldc);
+//            else
+//                nrotate_motor(&gBldc);            
+//        }
+//        Cmd_Parse();
+//    }
 }
