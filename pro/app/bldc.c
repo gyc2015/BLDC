@@ -19,111 +19,6 @@ static uint8 _BLDC_Remap_Hall(uint8 hall) {
     }
 }
 /*
- * BLDC_NRotate - 反转BLDC
- */
-void BLDC_NRotate(struct BLDC *bldc) {
-    // ABC
-    uint8 hall = Hall_GetStatus();
-    hall = _BLDC_Remap_Hall(hall);
-    
-    PWM_Set_Duty(&PWM_HA, 0);
-    PWM_Set_Duty(&PWM_HB, 0);
-    PWM_Set_Duty(&PWM_HC, 0);
-    PWM_Set_Duty(&PWM_LA, 0);
-    PWM_Set_Duty(&PWM_LB, 0);
-    PWM_Set_Duty(&PWM_LC, 0);
-    
-    switch (hall) {
-    case 0x5:
-        // 101 -> T3, T2
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x4:
-        // 100 -> T5, T2
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x6:
-        // 110 -> T5, T4
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    case 0x2:
-        // 010 -> T1, T4
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    case 0x3:
-        // 011 -> T1, T6
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    case 0x1:
-        // 001 -> T3, T6
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    default:
-        // ??????
-        break;
-    }
-}
-/*
- * BLDC_Rotate - 正转BLDC
- */
-void BLDC_Rotate(struct BLDC *bldc) {
-    // ABC
-    uint8 hall = Hall_GetStatus();
-    hall = _BLDC_Remap_Hall(hall);
-    
-    PWM_Set_Duty(&PWM_HA, 0);
-    PWM_Set_Duty(&PWM_HB, 0);
-    PWM_Set_Duty(&PWM_HC, 0);
-    PWM_Set_Duty(&PWM_LA, 0);
-    PWM_Set_Duty(&PWM_LB, 0);
-    PWM_Set_Duty(&PWM_LC, 0);
-    
-    switch (hall) {
-    case 0x5:
-        // 101 -> T1, T4
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    case 0x4:
-        // 100 -> T1, T6
-        PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    case 0x6:
-        // 110 -> T3, T6
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
-        break;
-    case 0x2:
-        // 010 -> T3, T2
-        PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x3:
-        // 011 -> T5, T2
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LA, 1);
-        break;
-    case 0x1:
-        // 001 -> T5, T4
-        PWM_Set_Duty(&PWM_HC, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        break;
-    default:
-        // 不可能的状态
-        break;
-    }
-}
-
-
-
-/*
  * BLDC_NThreeRotate - 三三导通反转BLDC
  */
 void BLDC_NThreeRotate(struct BLDC *bldc) {
@@ -134,46 +29,43 @@ void BLDC_NThreeRotate(struct BLDC *bldc) {
     PWM_Set_Duty(&PWM_HA, 0);
     PWM_Set_Duty(&PWM_HB, 0);
     PWM_Set_Duty(&PWM_HC, 0);
-    PWM_Set_Duty(&PWM_LA, 0);
-    PWM_Set_Duty(&PWM_LB, 0);
-    PWM_Set_Duty(&PWM_LC, 0);
     
     switch (hall) {
     case 0x5:
         // 101 -> T3, T2, T6, BA_BC
-        PWM_Set_Duty(&PWM_LA, 1);
+        PWM_Set_Duty(&PWM_HA, 0);
         PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
+        PWM_Set_Duty(&PWM_HC, 0);
         break;
     case 0x4:
         // 100 -> T5, T2, T3, CA_BA
-        PWM_Set_Duty(&PWM_LA, 1);
+        PWM_Set_Duty(&PWM_HA, 0);
         PWM_Set_Duty(&PWM_HB, bldc->duty);
         PWM_Set_Duty(&PWM_HC, bldc->duty);
         break;
     case 0x6:
         // 110 -> T5, T4, T2, CB_CA
-        PWM_Set_Duty(&PWM_LA, 1);
-        PWM_Set_Duty(&PWM_LB, 1);
+        PWM_Set_Duty(&PWM_HA, 0);
+        PWM_Set_Duty(&PWM_HB, 0);
         PWM_Set_Duty(&PWM_HC, bldc->duty);
         break;
     case 0x2:
         // 010 -> T1, T4, T5 AB_CB
         PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
+        PWM_Set_Duty(&PWM_HB, 0);
         PWM_Set_Duty(&PWM_HC, bldc->duty);
         break;
     case 0x3:
         // 011 -> T1, T6, T4, AC_AB
         PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        PWM_Set_Duty(&PWM_LC, 1);
+        PWM_Set_Duty(&PWM_HB, 0);
+        PWM_Set_Duty(&PWM_HC, 0);
         break;
     case 0x1:
         // 001 -> T3, T6, T1, BC_AC
         PWM_Set_Duty(&PWM_HA, bldc->duty);
         PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
+        PWM_Set_Duty(&PWM_HC, 0);
         break;
     default:
         // ??????
@@ -192,45 +84,42 @@ void BLDC_ThreeRotate(struct BLDC *bldc) {
     PWM_Set_Duty(&PWM_HA, 0);
     PWM_Set_Duty(&PWM_HB, 0);
     PWM_Set_Duty(&PWM_HC, 0);
-    PWM_Set_Duty(&PWM_LA, 0);
-    PWM_Set_Duty(&PWM_LB, 0);
-    PWM_Set_Duty(&PWM_LC, 0);
     
     switch (hall) {
     case 0x5:
         // 101 -> T1, T5, T4, AB_CB
         PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
+        PWM_Set_Duty(&PWM_HB, 0);
         PWM_Set_Duty(&PWM_HC, bldc->duty);
         break;
     case 0x4:
         // 100 -> T1, T4, T6, AC_AB
         PWM_Set_Duty(&PWM_HA, bldc->duty);
-        PWM_Set_Duty(&PWM_LB, 1);
-        PWM_Set_Duty(&PWM_LC, 1);
+        PWM_Set_Duty(&PWM_HB, 0);
+        PWM_Set_Duty(&PWM_HC, 0);
         break;
     case 0x6:
         // 110 -> T1, T3, T6, BC_AC
         PWM_Set_Duty(&PWM_HA, bldc->duty);
         PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
+        PWM_Set_Duty(&PWM_HC, 0);
         break;
     case 0x2:
         // 010 -> T3, T6, T2, BA_BC
-        PWM_Set_Duty(&PWM_LA, 1);
+        PWM_Set_Duty(&PWM_HA, 0);
         PWM_Set_Duty(&PWM_HB, bldc->duty);
-        PWM_Set_Duty(&PWM_LC, 1);
+        PWM_Set_Duty(&PWM_HC, 0);
         break;
     case 0x3:
         // 011 -> T5, T2, T3, CA_BA
-        PWM_Set_Duty(&PWM_LA, 1);
+        PWM_Set_Duty(&PWM_HA, 0);
         PWM_Set_Duty(&PWM_HB, bldc->duty);
         PWM_Set_Duty(&PWM_HC, bldc->duty);
         break;
     case 0x1:
         // 001 -> T5, T4, T2, CB_CA
-        PWM_Set_Duty(&PWM_LA, 1);
-        PWM_Set_Duty(&PWM_LB, 1);
+        PWM_Set_Duty(&PWM_HA, 0);
+        PWM_Set_Duty(&PWM_HB, 0);
         PWM_Set_Duty(&PWM_HC, bldc->duty);
         break;
     default:

@@ -172,7 +172,8 @@ int main(void) {
     DRV_Init(&gDrv8305);
     EN_GATE = 0;
     printf("wuhahaha\r\n");
-
+    _delay(50000);
+    
     systick_init(72000);
     xtos_init();
     xtos_init_task_descriptor(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
