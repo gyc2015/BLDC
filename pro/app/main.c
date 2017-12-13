@@ -73,6 +73,7 @@ uint8 GetRegister(uint16 addr) {
             return ptr[reg];
         }
     } else if (CFG_REGPAGE_DRV8305 == page) {
+        DRV_ReadRegs(&gDrv8305);
         if (reg < sizeof(gDrv8305)) {
             ptr = (uint8*)&gDrv8305;
             return ptr[reg];
@@ -165,16 +166,17 @@ int main(void) {
     SPI1_Init();
 
     NVIC_Configuration();
-    
-    _delay(1000);
+
+    for (int i = 0; i < 1000; i++)
+        _delay(50000);
     
     BLDC_Init(&gBldc);
     DRV_Init(&gDrv8305);
     EN_GATE = 0;
     printf("wuhahaha\r\n");
-    _delay(50000);
     
     systick_init(72000);
+        
     xtos_init();
     xtos_init_task_descriptor(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
     xtos_init_task_descriptor(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1], 1);

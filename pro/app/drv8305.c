@@ -3,7 +3,7 @@
 /*
  * DRV_ReadRegs - 从DRV8305中获取寄存器信息
  */
-static void DRV_ReadRegs(struct Drv8305 *drv) {
+void DRV_ReadRegs(struct Drv8305 *drv) {
     drv->WarningWatchdogReset = SPI1_Communicate(1, 1, 0);      // 0x01 Warning and Watchdog
     drv->OV_VDSFaults = SPI1_Communicate(1, 2, 0);              // 0x02 OV/VDS Faults
     drv->IC_Faults = SPI1_Communicate(1, 3, 0);                 // 0x03 IC Faults
@@ -37,10 +37,12 @@ static void DRV_WriteRegs(struct Drv8305 *drv) {
  */
 void DRV_Init(struct Drv8305 *drv) {
     SPI1_Communicate(0, 5, 0x3BB);
+    _delay(1000);
     SPI1_Communicate(0, 6, 0x3BB);
+    _delay(1000);
     SPI1_Communicate(0, 7, 0x096);
+    _delay(1000);
     SPI1_Communicate(0, 9, 0x322);
-    
     _delay(1000);
     DRV_ReadRegs(drv);
     drv->cmd = 0;

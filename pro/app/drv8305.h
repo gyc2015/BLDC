@@ -25,5 +25,6 @@ struct Drv8305 {
 
 void DRV_Init(struct Drv8305 *drv);
 void DRV_Exec(struct Drv8305 *drv);
+void DRV_ReadRegs(struct Drv8305 *drv);
 
 #endif
