@@ -166,7 +166,8 @@ int main(void) {
 
     NVIC_Configuration();
     
-    _delay(1000);
+    for (int i = 0; i < 1000; i++)
+        _delay(5000);
     
     BLDC_Init(&gBldc);
     DRV_Init(&gDrv8305);
