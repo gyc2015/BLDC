@@ -47,7 +47,7 @@ void BLDC_Rotate(struct BLDC *bldc);
 /*
  * BLDC_NThreeRotate - 三三导通反转BLDC
  */
-void BLDC_NThreeRotate(struct BLDC *bldc);
-void BLDC_ThreeRotate(struct BLDC *bldc);
+void BLDC_NOneRotate(struct BLDC *bldc);
+void BLDC_OneRotate(struct BLDC *bldc);
 
 #endif

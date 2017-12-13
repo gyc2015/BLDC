@@ -38,6 +38,7 @@ static void DRV_WriteRegs(struct Drv8305 *drv) {
 void DRV_Init(struct Drv8305 *drv) {
     SPI1_Communicate(0, 5, 0x3BB);
     SPI1_Communicate(0, 6, 0x3BB);
+    SPI1_Communicate(0, 7, 0x116);
     SPI1_Communicate(0, 9, 0x322);
     
     DRV_ReadRegs(drv);
