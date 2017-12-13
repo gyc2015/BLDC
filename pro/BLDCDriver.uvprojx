@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\lib\stm32_cmsis\inc;..\lib\stm32_periph\inc;..\lib\utils\inc;..\inc;.\app</IncludePath>
+              <IncludePath>..\lib\stm32_cmsis\inc;..\lib\stm32_periph\inc;..\lib\utils\inc;..\lib\xtos\inc;..\inc;.\app</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -607,6 +607,11 @@
               <FileType>1</FileType>
               <FilePath>.\app\bldc.c</FilePath>
             </File>
+            <File>
+              <FileName>command.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\app\command.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -633,9 +638,29 @@
               <FilePath>..\lib\utils\src\utils.c</FilePath>
             </File>
             <File>
-              <FileName>command.c</FileName>
+              <FileName>list.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\lib\utils\src\command.c</FilePath>
+              <FilePath>..\lib\utils\src\list.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>xtos</GroupName>
+          <Files>
+            <File>
+              <FileName>xtos.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\lib\xtos\src\xtos.c</FilePath>
+            </File>
+            <File>
+              <FileName>xtos_asm.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\lib\xtos\src\xtos_asm.s</FilePath>
+            </File>
+            <File>
+              <FileName>xtos_time.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\lib\xtos\src\xtos_time.c</FilePath>
             </File>
           </Files>
         </Group>

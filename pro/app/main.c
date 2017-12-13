@@ -126,9 +126,9 @@ void taskb() {
         EN_GATE = gBldc.cmd.bits.en;
         if (gBldc.cmd.bits.en) {
             if (gBldc.cmd.bits.dir)
-                BLDC_Rotate(&gBldc);
+                BLDC_ThreeRotate(&gBldc);
             else
-                BLDC_NRotate(&gBldc);            
+                BLDC_NThreeRotate(&gBldc);            
         }
         xtos_schedule();
     }
