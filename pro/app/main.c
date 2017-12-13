@@ -122,6 +122,8 @@ void taska() {
 }
 
 void taskb() {
+    gBldc.duty = 0.3;
+    gBldc.cmd.bits.en = 1;
     while (1) {
         EN_GATE = gBldc.cmd.bits.en;
         if (gBldc.cmd.bits.en) {
@@ -166,7 +168,9 @@ int main(void) {
 
     NVIC_Configuration();
     
-    _delay(1000);
+    // 必须保证有足够的延时，等待DRV8305开始工作
+    for (int i = 0; i < 1000; i++)
+        _delay(5000);
     
     BLDC_Init(&gBldc);
     DRV_Init(&gDrv8305);
