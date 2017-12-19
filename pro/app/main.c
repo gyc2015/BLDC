@@ -2,6 +2,7 @@
 #include <command.h>
 #include <drv8305.h>
 #include <bldc.h>
+#include <system.h>
 #include <xtos.h>
 
 int gSCount = 0;
@@ -18,7 +19,7 @@ void NVIC_Configuration(void){
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	// USART1 串口中断
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -28,6 +29,8 @@ void NVIC_Configuration(void){
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+
+
 }
 
 BOOL CheckAddress(uint16 add) {
@@ -98,8 +101,10 @@ void taska() {
     uint8 tmptype = 0;
     cmd.all = 0;
     while (1) {
-        if (!Cmd_ParseStream(&gU1RxQ, (uint8*)&head, 2))
+        if (!Cmd_ParseStream(&gU1RxQ, (uint8*)&head, 2)) {
+            xtos_schedule();
             continue;
+        }
         
         cmd.all = Cmd_ParseHalfWord(&gU1RxQ);
         len = Cmd_ParseHalfWord(&gU1RxQ);
@@ -117,11 +122,14 @@ void taska() {
             }
             cmd.all++;
             len--;
+            xtos_schedule();
         }
     }
 }
 
 void taskb() {
+    gBldc.duty = 0.3;
+    gBldc.cmd.bits.en = 1;
     while (1) {
         EN_GATE = gBldc.cmd.bits.en;
         if (gBldc.cmd.bits.en) {
@@ -135,30 +143,12 @@ void taskb() {
 }
 
 
-#define SysTicks_Irq_n 15
-/*
- * systick_init - 系统时钟初始化
- *
- * @ticks: 系统时钟频率(MHz)
- */
-void systick_init(uint32 ticks) {
-    SysTick->LOAD = (0x00FFFFFF & ticks);
-    SysTick->VAL = 0;
-
-    SCB->SHP[SysTicks_Irq_n - 4] = 0x00;
-    
-    
-    SysTick->CTRL = 0x07;
-}
-
-
-void SysTick_Handler(void) {
-    xtos_tick();
-}
 
 int main(void) {
+    BLDC_Init(&gBldc);
+    
     USART1_Init(115200);
-    Hall_Init();
+    Hall_Init(&gBldc);
     PWM_Init();
     ADC1_Init((uint16*)&(gBldc.vi));
     IO_Init();
@@ -169,12 +159,11 @@ int main(void) {
     for (int i = 0; i < 1000; i++)
         _delay(5000);
     
-    BLDC_Init(&gBldc);
     DRV_Init(&gDrv8305);
     EN_GATE = 0;
     printf("wuhahaha\r\n");
 
-    systick_init(72000);
+    sys_init_tick(CFG_SYSTICK_PMS);
     xtos_init();
     xtos_init_task_descriptor(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
     xtos_init_task_descriptor(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1], 1);

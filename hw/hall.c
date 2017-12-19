@@ -1,4 +1,7 @@
 #include <board.h>
+#include <system.h>
+
+struct BLDC *_gBldcPtr = NULL;
 
 static void _Hall_Exti_Init(void) {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO,ENABLE); 
@@ -18,7 +21,7 @@ static void _Hall_Exti_Init(void) {
 /*
  * Init_Hall - 初始化电机三相霍尔
  */
-void Hall_Init(void) {
+void Hall_Init(struct BLDC *pbldc) {
     GPIO_InitTypeDef GPIO_InitStructure;
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, ENABLE);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14;
@@ -38,106 +41,83 @@ void Hall_Init(void) {
     
     PBout(11) = 0;
     
+    _gBldcPtr = pbldc;
     _Hall_Exti_Init();
 }
+
+/*
+ * _BLDC_Remap_Hall - 对霍尔信号的重映射，针对安装时霍尔信号不对，导致换相不正确
+ */
+static uint8 _Hall_Remap(uint8 hall) {
+    switch (hall) { // CAB
+    case 0x5: return 0x6;  // 101(ACB) -> 110(ABC)
+    case 0x4: return 0x4;  // 100(ACB) -> 100(ABC)
+    case 0x6: return 0x5;  // 110(ACB) -> 101(ABC)
+    case 0x2: return 0x1;  // 010(ACB) -> 001(ABC)
+    case 0x3: return 0x3;  // 011(ACB) -> 011(ABC)
+    case 0x1: return 0x2;  // 001(ACB) -> 010(ABC)
+    default: return 0x0;
+    }
+}
+
 /*
  * Hall_GetStatus - 获取霍尔状态
  */
 uint8 Hall_GetStatus(void) {
-    return ((GPIO_ReadInputData(GPIOB) >> 12) & 0x07);
+    return _Hall_Remap((GPIO_ReadInputData(GPIOB) >> 12) & 0x07);
 }
 
-#define HallExti_ARising 0
-#define HallExti_AFaling 1
-#define HallExti_BRising 2
-#define HallExti_BFaling 3
-#define HallExti_CRising 4
-#define HallExti_CFaling 5
-#define HallExti_Unknown 6
+uint8 _gNegNext[7] = { 0, 5, 3, 1, 6, 4, 2};
+uint8 _gPosNext[7] = { 0, 3, 6, 2, 5, 1, 4};
+struct systicks _gLastTicks = {0, 0};
+/*
+ * _Hall_CountPulse - 计数霍尔脉冲
+ */
+static void _Hall_CountPulse(void) {
+    uint8 hall = Hall_GetStatus();
+    if (0 == hall)
+        return;
+    
+    if (0 == _gBldcPtr->hall) {
+        _gBldcPtr->hall = hall;
+        return;
+    }
 
-uint8 gCurExt = HallExti_Unknown;
-uint8 gNcurExt = HallExti_Unknown;
-uint8 gLstExt = HallExti_Unknown;
-uint8 gPosExt = HallExti_Unknown;
-uint8 gNegExt = HallExti_Unknown;
+    struct systicks cticks;
+    sys_get_ticks(&cticks);
+    int ticks = sys_diff_ticks(&_gLastTicks, &cticks);
+    
+    if (hall == _gPosNext[_gBldcPtr->hall]) {
+        _gBldcPtr->hall = hall;
+        _gBldcPtr->dir = BLDC_DIR_POS;
+        _gBldcPtr->pulse_count++;
+        _gBldcPtr->pulse_rate = 1.0f * (float)CFG_SYSTICK_PMS / (float)ticks;
+    } else if (hall == _gNegNext[_gBldcPtr->hall]) {
+        _gBldcPtr->hall = hall;
+        _gBldcPtr->dir = BLDC_DIR_NEG;
+        _gBldcPtr->pulse_count--;
+        _gBldcPtr->pulse_rate = -1.0f * (float)CFG_SYSTICK_PMS / (float)ticks;
+    }
+    _gLastTicks.ms = cticks.ms;
+    _gLastTicks.ticks = cticks.ticks;
+}
 
-int32 gCount = 0;
-
+// 因为ACB接线,所以BC反相
 void EXTI15_10_IRQHandler(void) {
     if (EXTI_GetITStatus(EXTI_Line14) != RESET) {
         // PB14 - HallA
-        if (1 == HallA) {
-            gCurExt = HallExti_ARising;
-            if (gCurExt == gPosExt) {
-                gCount++;
-            } else if (gCurExt == gNegExt) {
-                gCount--;
-            }
-            gNcurExt = HallExti_AFaling;
-            gPosExt = HallExti_CFaling;
-            gNegExt = HallExti_BFaling;
-        } else if (0 == HallA) {
-            gCurExt = HallExti_AFaling;
-            if (gCurExt == gPosExt) {
-                gCount++;
-            } else if (gCurExt == gNegExt) {
-                gCount--;
-            }
-            gNcurExt = HallExti_ARising;
-            gPosExt = HallExti_CRising;
-            gNegExt = HallExti_BRising;
-        }
+        _Hall_CountPulse();
         EXTI_ClearITPendingBit(EXTI_Line14);
     }
-    if (EXTI_GetITStatus(EXTI_Line13) != RESET) {
-        // PB13 - HallB
-        if (1 == HallB) {
-            gCurExt = HallExti_BRising;
-            if (gCurExt == gPosExt) {
-                gCount++;
-            } else if (gCurExt == gNegExt) {
-                gCount--;
-            }
-            gNcurExt = HallExti_BFaling;
-            gPosExt = HallExti_AFaling;
-            gNegExt = HallExti_CFaling;
-        } else if (0 == HallB) {
-            gCurExt = HallExti_BFaling;
-            if (gCurExt == gPosExt) {
-                gCount++;
-            } else if (gCurExt == gNegExt) {
-                gCount--;
-            }
-            gNcurExt = HallExti_BRising;
-            gPosExt = HallExti_ARising;
-            gNegExt = HallExti_CRising;
-        }
-        EXTI_ClearITPendingBit(EXTI_Line13);
-    }
     if (EXTI_GetITStatus(EXTI_Line12) != RESET) {
-        // PB12 - HallC
-        if (1 == HallC) {
-            gCurExt = HallExti_CRising;
-            if (gCurExt == gPosExt) {
-                gCount++;
-            } else if (gCurExt == gNegExt) {
-                gCount--;
-            }
-            gNcurExt = HallExti_CFaling;
-            gPosExt = HallExti_BFaling;
-            gNegExt = HallExti_AFaling;
-        } else if (0 == HallC) {
-            gCurExt = HallExti_CFaling;
-            if (gCurExt == gPosExt) {
-                gCount++;
-            } else if (gCurExt == gNegExt) {
-                gCount--;
-            }
-            gNcurExt = HallExti_CRising;
-            gPosExt = HallExti_BRising;
-            gNegExt = HallExti_ARising;
-        }
+        // PB13 - HallB
+        _Hall_CountPulse();
         EXTI_ClearITPendingBit(EXTI_Line12);
+    }
+    if (EXTI_GetITStatus(EXTI_Line13) != RESET) {
+        // PB12 - HallC
+        _Hall_CountPulse();
+        EXTI_ClearITPendingBit(EXTI_Line13);
     }
 
 }

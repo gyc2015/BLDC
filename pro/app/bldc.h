@@ -1,7 +1,7 @@
 #ifndef BLDC_H
 #define BLDC_H
 
-#include <board.h>
+#include <types.h>
 
 /*
  * BldcCmdBits - 无刷电机控制位定义
@@ -31,12 +31,19 @@ struct BldcVISense {
     uint16 ci;      // C相电流
 };
 
+#define BLDC_DIR_POS     ((int8)(1))
+#define BLDC_DIR_NEG     ((int8)(-1))
+#define BLDC_DIR_UNKNOWN ((int8)(0))
+
 #pragma pack (1)
 struct BLDC {
-    union BldcCmd cmd;      // 0:电机控制字
-    struct BldcVISense vi;  // 2-14:电压电流采样数值
-    float duty;             // 16: 电机控制占空比
-    
+    union BldcCmd cmd;      // 0-1:电机控制字
+    struct BldcVISense vi;  // 2-15:电压电流采样数值
+    float duty;             // 16-19: 电机控制占空比
+    int8 dir;               // 20: 电机转动方向
+    uint8 hall;             // 21: 当前hall状态
+    int pulse_count;        // 22-25: hall脉冲数量
+    float pulse_rate;       // 26-29: hall脉冲频率(脉冲数/ms)
 };
 #pragma pack ()
 

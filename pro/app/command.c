@@ -22,8 +22,10 @@ BOOL Cmd_ParseStream(Queue_T *q, const uint8 *pattern, uint8 len) {
     uint8 tmp;
     
     for (uint8 i = 0; i < len; i++) {
-        if (!Cmd_Expect(q, pattern[i]))
+        if (!Cmd_Expect(q, pattern[i])) {
+            dequeue(q, &tmp);
             return FALSE;
+        }
         dequeue(q, &tmp);
     }
     

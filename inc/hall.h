@@ -2,6 +2,7 @@
 #define HALL_H
 
 #include <types.h>
+#include <bldc.h>
 
 #define HallA   PBin(14)
 #define HallB   PBin(13)
@@ -13,7 +14,7 @@
 
 extern int32 gCount;
 
-void Hall_Init(void);
+void Hall_Init(struct BLDC *pbldc);
 uint8 Hall_GetStatus(void);
 
 #endif

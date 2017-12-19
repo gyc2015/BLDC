@@ -6,6 +6,11 @@
 
 #include <xtos_time.h>
 
+#define XTOS_OFF    0
+#define XTOS_STATED 1
+
+extern uint8 xtos_state;
+
 // xtos任务入口
 typedef void(*xtos_task)(void);
 

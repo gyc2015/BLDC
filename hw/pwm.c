@@ -9,7 +9,7 @@
  * 系统频率 72MHz PWM频率 72KHz
  */
 #define PRESCALER 1
-#define PERIOD 1000
+#define PERIOD 500
 
 /*
  * PWMAB_Init - 初始化AB相驱动PWM

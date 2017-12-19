@@ -1,5 +1,7 @@
 #include <xtos.h>
 
+uint8 xtos_state = XTOS_OFF;
+
 struct xtos_task_descriptor *gp_xtos_cur_task;
 struct xtos_task_descriptor *gp_xtos_next_task;
 
@@ -96,6 +98,7 @@ void xtos_start(void) {
 
     list_del(&gp_xtos_next_task->list);
 
+    xtos_state = XTOS_STATED;
     xtos_first_switch();
     __asm("CPSIE   I");
 }
