@@ -155,6 +155,21 @@ static BOOL Cmd_SendingData(void) {
     return TRUE;
 }
 /*
+ * Cmd_UpdataRegisters - 更新寄存器数据
+ */
+static BOOL Cmd_UpdataRegisters(void) {
+    int i = 0;
+    while (_len > 0) {
+        if (TRUE == CheckAddress(_cmd.bits.addr, TRUE)) {
+            SetRegister(_cmd.bits.addr, _cmdbuf[i]);
+        }
+        _cmd.all++;
+        _len--;
+        i++;
+    }
+    return TRUE;
+}
+/*
  * Cmd_ReceivingData - 接收数据
  */
 static BOOL Cmd_ReceivingData(void) {
@@ -208,9 +223,10 @@ void Cmd_Task(void) {
         } else {
             if (!Cmd_ReceivingData()) {
                 Cmd_RecvStateSend(0x000A);
-            } else {
-                Cmd_RecvStateSend(0x00A0);
+                continue;
             }
+            Cmd_RecvStateSend(0x00A0);
+            Cmd_UpdataRegisters();
         }
     }
 }

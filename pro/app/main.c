@@ -44,8 +44,8 @@ static struct xtos_task_descriptor taskA;
 static struct xtos_task_descriptor taskB;
 
 void taskb() {
-    gBldc.duty = 0.1;
-    gBldc.cmd.bits.en = 1;
+    gBldc.duty = 0;
+    gBldc.cmd.bits.en = 0;
     while (1) {
         EN_GATE = gBldc.cmd.bits.en;
         if (gBldc.cmd.bits.en) {
