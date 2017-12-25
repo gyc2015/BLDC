@@ -2,14 +2,50 @@
 #include <command.h>
 #include <xtos.h>
 
+uint8 gCmdError = CMD_ERROR_NOERROR;
 /*
  * Cmd_Expect - 期望队列@q中的数据是@b
  */
 static BOOL Cmd_Expect(Queue_T *q, uint8 b) {
     uint8 tmp;
-    while (!peek_queue(q, &tmp))
+    uint16 times = 0;
+    while (!peek_queue(q, &tmp)) {
+        times++;
+        if (times > CFG_CMD_TIMEOUT) {
+            gCmdError = CMD_ERROR_TIMEOUT;
+            return FALSE;
+        }
         xtos_schedule();
-    return (tmp == b) ? TRUE : FALSE;
+    }
+    
+    if (tmp != b) {
+        gCmdError = CMD_ERROR_INVALID;
+        return FALSE;
+    } else {
+        gCmdError = CMD_ERROR_NOERROR;
+        return TRUE;
+    }
+}
+/*
+ * Cmd_CatchByte - 捕获一个字节
+ *
+ * @q: 目标队列
+ * @buf: 捕获内容缓存
+ */
+BOOL Cmd_CatchByte(Queue_T *q, uint8 *buf) {
+    uint16 times = 0;
+    
+    while (!dequeue(q, buf)) {
+        times++;
+        if (times > CFG_CMD_TIMEOUT) {
+            gCmdError = CMD_ERROR_TIMEOUT;
+            return FALSE;
+        }
+        xtos_schedule();
+    }
+    
+    gCmdError = CMD_ERROR_NOERROR;
+    return TRUE;
 }
 /*
  * Cmd_ParseStream - 解析字符流，如果匹配@pattern则返回TRUE，否则FALSE
@@ -23,7 +59,7 @@ BOOL Cmd_ParseStream(Queue_T *q, const uint8 *pattern, uint8 len) {
     
     for (uint8 i = 0; i < len; i++) {
         if (!Cmd_Expect(q, pattern[i])) {
-            dequeue(q, &tmp);
+            clear_queue(q);
             return FALSE;
         }
         dequeue(q, &tmp);
@@ -39,10 +75,10 @@ BOOL Cmd_ParseStream(Queue_T *q, const uint8 *pattern, uint8 len) {
 uint16 Cmd_ParseHalfWord(Queue_T *q) {
     union Data16 addr;
     
-    while (!dequeue(q, &(addr.byte[0])))
-        xtos_schedule();
-    while (!dequeue(q, &(addr.byte[1])))
-        xtos_schedule();
+    if (!Cmd_CatchByte(q, &(addr.byte[0])))
+        return 0;
+    if (!Cmd_CatchByte(q, &(addr.byte[1])))
+        return 0;
     
     return addr.half_word;
 }
@@ -59,8 +95,27 @@ void Cmd_ParseBytes(Queue_T *q, uint8 *buf, uint16 len) {
             xtos_schedule();
     }
 }
-
-
+/*
+ * Cmd_WaitBytes - 等待队列中存在@len个字节
+ *
+ * @q: 目标队列
+ * @len: 队列长度
+ */
+uint16 Cmd_WaitBytes(Queue_T *q, uint16 len) {
+    uint16 times = 0;
+    
+    while (len > get_queue_size(q)) {
+        times++;
+        if (times > CFG_CMD_TIMEOUT) {
+            gCmdError = CMD_ERROR_TIMEOUT;
+            return FALSE;
+        }
+        xtos_schedule();
+    }
+    
+    gCmdError = CMD_ERROR_NOERROR;
+    return TRUE;
+}
 
 
 

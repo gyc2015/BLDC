@@ -4,15 +4,12 @@
 #include <board.h>
 #include <queue.h>
 
-struct CmdAddrBits {
-    uint16 addr : 15;
-    uint16 rw : 1;  // 1:w, 0:r
-};
-union CmdAddr {
-    struct CmdAddrBits bits;
-    uint16 all;
-};
+#define CMD_ERROR_NOERROR   0   // 没错
+#define CMD_ERROR_TIMEOUT   1   // 超时
+#define CMD_ERROR_INVALID   2   // 字符不匹配
+extern uint8 gCmdError;
 
+BOOL Cmd_CatchByte(Queue_T *q, uint8 *buf);
 /*
  * Cmd_ParseStream - 解析字符流，如果匹配@pattern则返回TRUE，否则FALSE
  *
@@ -35,5 +32,16 @@ uint16 Cmd_ParseHalfWord(Queue_T *q);
  * @len: 队列长度
  */
 void Cmd_ParseBytes(Queue_T *q, uint8 *buf, uint16 len);
+/*
+ * Cmd_WaitBytes - 等待队列中存在@len个字节
+ *
+ * @q: 目标队列
+ * @len: 队列长度
+ */
+uint16 Cmd_WaitBytes(Queue_T *q, uint16 len);
+/****************************************************************************/
+
+
+
 
 #endif

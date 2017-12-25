@@ -617,6 +617,11 @@
               <FileType>1</FileType>
               <FilePath>.\app\system.c</FilePath>
             </File>
+            <File>
+              <FileName>cmd_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\app\cmd_task.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -80,8 +80,13 @@ void USART1_IRQHandler(void) {
  * @value: 目标数据
  */
 uint8 USART1_SendByte(uint8 value) {
+    uint16 times = 0;
     USART1->DR = value;
-    while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+    while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET) {
+        times++;
+        if (times > CFG_UART_SEND_TIMEOUT)
+            return 1;
+    }
     return 0;
 }
 
@@ -93,8 +98,8 @@ uint8 USART1_SendByte(uint8 value) {
  */
 uint8 USART1_SendBytes(const uint8 *buf, unsigned int len) {
     for (int i = 0; i < len; i++) {
-        USART1->DR = buf[i];
-        while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+        if (0 != USART1_SendByte(buf[i]))
+            return 1;
     }
     return 0;
 }
