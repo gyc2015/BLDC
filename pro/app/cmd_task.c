@@ -205,7 +205,6 @@ static BOOL Cmd_RecvStateSend(uint16 ack) {
     return TRUE;
 }
 
-
 void Cmd_Task(void) {
     while (1) {
         if (!Cmd_InitState()) {
@@ -230,3 +229,46 @@ void Cmd_Task(void) {
         }
     }
 }
+
+void Cmd_Simple_Task(void) {
+    uint8 tmp;
+    while (1) {
+        if (!is_queue_empty(&gU1RxQ)) {
+            dequeue(&gU1RxQ, &tmp);
+            USART1_SendByte(tmp);
+            switch (tmp) {
+            case 'a':
+                gBldc.cmd.bits.en = 0;
+                xtos_delay_ticks(1);
+                gBldc.cmd.bits.en = 1;
+                gBldc.duty -= 0.1f;
+                if (gBldc.duty < 0.0f)
+                    gBldc.duty = 0.0f;
+                printf("gBldc.duty = %f\r\n", gBldc.duty);
+                break;
+            case 'A':
+                gBldc.cmd.bits.en = 0;
+                xtos_delay_ticks(1);
+                gBldc.cmd.bits.en = 1;
+                gBldc.duty += 0.1f;
+                if (gBldc.duty > 1.0f)
+                    gBldc.duty = 1.0f;
+                printf("gBldc.duty = %f\r\n", gBldc.duty);
+                break;
+            case 'b':   // ¹Ø±Õ
+                gBldc.cmd.bits.en = 1;
+                gBldc.cmd.bits.dir = 1;
+                break;
+            case 'B':   // ´ò¿ª
+                gBldc.cmd.bits.en = 1;
+                gBldc.cmd.bits.dir = 0;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+
+
+

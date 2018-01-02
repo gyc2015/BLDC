@@ -12,7 +12,7 @@ union CmdAddr {
     uint16 all;
 };
 
-
+void Cmd_Simple_Task(void);
 void Cmd_Task(void);
 
 #endif
